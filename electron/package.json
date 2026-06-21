@@ -1,5 +1,6 @@
 {
   "name": "farmacompare",
+  "type": "module",
   "version": "1.0.0",
   "description": "Comparador de precios de medicamentos en farmacias chilenas",
   "main": "main.js",
