@@ -11,8 +11,10 @@
     "build:mac": "npm run build:frontend && electron-builder --mac",
     "build:linux": "npm run build:frontend && electron-builder --linux"
   },
-  "dependencies": {
-    "electron": "^31.0.0"
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
   },
   "devDependencies": {
     "electron-builder": "^24.13.3"
