@@ -1,45 +1,35 @@
 import { useState, useCallback } from "react";
 import BuscadorMultiple from "./components/BuscadorMultiple.jsx";
 import SelectorFarmacias from "./components/SelectorFarmacias.jsx";
-import ResultadosMultiple from "./components/ResultadosMultiple.jsx";
+import AsistenteResultados from "./components/AsistenteResultados.jsx";
 import SubirReceta from "./components/SubirReceta.jsx";
 import Disclaimer from "./components/Disclaimer.jsx";
-import { buscarPrecios, esAppEscritorio } from "./services/api.js";
 import { FARMACIAS_DEFAULT } from "./data/farmacias.js";
 
 export default function App() {
   const [vista, setVista] = useState("inicio"); // "inicio" | "resultados" | "receta"
   const [farmacias, setFarmacias] = useState(FARMACIAS_DEFAULT);
-  const [datos, setDatos] = useState(null);
-  const [cargando, setCargando] = useState(false);
+  const [medicamentos, setMedicamentos] = useState([]);
   const [error, setError] = useState(null);
   const [textoGrande, setTextoGrande] = useState(false);
 
   const buscar = useCallback(
-    async (medicamentos) => {
-      if (!medicamentos?.length) return;
+    (meds) => {
+      const lista = Array.isArray(meds) ? meds : [meds];
+      if (!lista.length) return;
       if (farmacias.length === 0) {
         setError("Selecciona al menos una farmacia");
         return;
       }
-      setCargando(true);
       setError(null);
+      setMedicamentos(lista);
       setVista("resultados");
-      try {
-        const resultado = await buscarPrecios(medicamentos, farmacias);
-        setDatos(resultado);
-      } catch (e) {
-        setError(e.message || "Error al buscar. Intenta de nuevo.");
-      } finally {
-        setCargando(false);
-      }
     },
     [farmacias]
   );
 
   const volverInicio = () => {
     setVista("inicio");
-    setDatos(null);
     setError(null);
   };
 
@@ -73,13 +63,8 @@ export default function App() {
                 Compara precios de medicamentos
               </h1>
               <p className="text-gray-500 text-lg">
-                Busca uno o varios medicamentos y encuentra dónde están más baratos.
+                Busca uno o varios medicamentos y la app te abre cada farmacia con la búsqueda lista.
               </p>
-              {!esAppEscritorio && (
-                <p className="text-xs text-amber-600 mt-2 bg-amber-50 inline-block px-3 py-1 rounded-full">
-                  ⚠️ Versión web: datos de demostración. La app de escritorio trae precios reales.
-                </p>
-              )}
             </div>
 
             <BuscadorMultiple onBuscar={buscar} />
@@ -106,7 +91,7 @@ export default function App() {
             <button onClick={volverInicio} className="mb-4 text-blue-600 hover:text-blue-800 font-medium">
               ← Volver
             </button>
-            <SubirReceta onBuscar={(meds) => buscar(Array.isArray(meds) ? meds : [meds])} />
+            <SubirReceta onBuscar={buscar} />
           </div>
         )}
 
@@ -115,7 +100,7 @@ export default function App() {
             <button onClick={volverInicio} className="mb-4 text-blue-600 hover:text-blue-800 font-medium">
               ← Nueva búsqueda
             </button>
-            <ResultadosMultiple datos={datos} cargando={cargando} error={error} />
+            <AsistenteResultados medicamentos={medicamentos} farmaciaIds={farmacias} />
           </div>
         )}
       </main>

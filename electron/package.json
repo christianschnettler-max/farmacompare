@@ -19,7 +19,6 @@
     "directories": { "output": "dist-electron" },
     "files": [
       "main.js",
-      "scraper.js",
       "preload.cjs"
     ],
     "extraResources": [

@@ -61,6 +61,18 @@ export const CATALOGO_FARMACIAS = [
     default: false,
     buscarUrl: (t) => `https://www.redfarma.cl/catalogsearch/result/?q=${encodeURIComponent(t)}`,
   },
+  {
+    id: "liga",
+    nombre: "Liga contra la Epilepsia",
+    default: false,
+    buscarUrl: (t) => `https://www.ligaepilepsia.cl/?post_type=product&s=${encodeURIComponent(t)}`,
+  },
+  {
+    id: "galenica",
+    nombre: "Farmacia Galénica",
+    default: false,
+    buscarUrl: (t) => `https://farmaciagalenica.cl/?post_type=product&s=${encodeURIComponent(t)}`,
+  },
 ];
 
 export const FARMACIAS_DEFAULT = CATALOGO_FARMACIAS.filter((f) => f.default).map((f) => f.id);

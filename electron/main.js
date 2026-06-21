@@ -3,20 +3,18 @@ import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
-import { buscarPrecios } from "./scraper.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
 let mainWindow;
 
-// Canal para que el frontend pida búsquedas de precios reales
-ipcMain.handle("buscar-precios", async (_evt, { medicamentos, farmaciaIds }) => {
-  try {
-    return await buscarPrecios(medicamentos, farmaciaIds);
-  } catch (e) {
-    console.error("Error buscando precios:", e.message);
-    return { porMedicamento: [], error: e.message };
+// Abrir la búsqueda de una farmacia en el navegador del sistema
+ipcMain.handle("abrir-url", (_evt, url) => {
+  if (typeof url === "string" && /^https?:\/\//.test(url)) {
+    shell.openExternal(url);
+    return true;
   }
+  return false;
 });
 
 // Buscar el server.js del backend (empaquetado o en desarrollo)
