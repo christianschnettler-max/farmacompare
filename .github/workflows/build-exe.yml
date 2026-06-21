@@ -1,0 +1,46 @@
+name: Construir instalador Windows (.exe)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm install
+
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: npm install
+
+      - name: Compilar frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Instalar dependencias de Electron
+        working-directory: electrón
+        run: npm install
+
+      - name: Construir instalador .exe
+        working-directory: electrón
+        run: npx electron-builder --win --publish never
+
+      - name: Subir instalador como descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: FarmaCompare-Windows-Installer
+          path: electrón/dist-electron/*.exe
+          retention-days: 30
