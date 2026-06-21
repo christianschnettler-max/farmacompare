@@ -33,8 +33,9 @@ jobs:
       - name: Instalar y construir Electron
         run: |
           $folder = Get-ChildItem -Directory | Where-Object { $_.Name -like "electr*" } | Select-Object -First 1
-          cd $folder.FullName
-          npm install
+          Set-Location $folder.FullName
+          npm install --include=dev
+          $env:NODE_ENV = "development"
           npx electron-builder --win --publish never
         shell: pwsh
 
@@ -45,4 +46,5 @@ jobs:
           path: |
             electrón/dist-electron/*.exe
             electron/dist-electron/*.exe
+          if-no-files-found: warn
           retention-days: 30
