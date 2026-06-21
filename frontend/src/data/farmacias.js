@@ -28,13 +28,13 @@ export const CATALOGO_FARMACIAS = [
     id: "buho",
     nombre: "Búho",
     default: true,
-    buscarUrl: (t) => `https://www.buho.cl/search?q=${encodeURIComponent(t)}`,
+    buscarUrl: (t) => `https://www.buhochile.com/products?q=${encodeURIComponent(t)}`,
   },
   {
     id: "meki",
     nombre: "Meki",
     default: true,
-    buscarUrl: (t) => `https://www.meki.cl/search?q=${encodeURIComponent(t)}`,
+    buscarUrl: (t) => `https://farmaciameki.cl/buscar?q=${encodeURIComponent(t)}`,
   },
   // ─── Otras farmacias disponibles (no preseleccionadas) ─────────────────────
   {
