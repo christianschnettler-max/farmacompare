@@ -1,0 +1,29 @@
+[build]
+  base    = "frontend"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Las funciones serverless están en /netlify/functions (relativo a la raíz)
+[functions]
+  directory = "../netlify/functions"
+  node_bundler = "esbuild"
+
+# Redirigir /api/* a las Netlify Functions
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback: cualquier ruta que no sea archivo va a index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+[dev]
+  command   = "npm run dev"
+  port      = 5173
+  targetPort = 5173

@@ -1,0 +1,62 @@
+{
+  "name": "farmacompare",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Comparador de precios de medicamentos en farmacias chilenas",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:frontend": "cd ../frontend && npm install && npm run build",
+    "build:win": "npm run build:frontend && electron-builder --win",
+    "build:mac": "npm run build:frontend && electron-builder --mac",
+    "build:linux": "npm run build:frontend && electron-builder --linux"
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "cl.farmacompare.app",
+    "productName": "FarmaCompare Chile",
+    "copyright": "Copyright © 2025 FarmaCompare",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "../frontend/dist/**/*",
+      "../backend/**/*",
+      "!../backend/node_modules/.cache",
+      "!../backend/tests"
+    ],
+    "extraResources": [
+      { "from": "../backend", "to": "backend", "filter": ["**/*", "!node_modules/.cache", "!tests"] },
+      { "from": "../frontend/dist", "to": "frontend/dist" }
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "../frontend/public/icon-256.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "../frontend/public/icon-256.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FarmaCompare Chile",
+      "installerHeaderIcon": "../frontend/public/icon-256.png",
+      "deleteAppDataOnUninstall": true,
+      "license": "LICENSE.txt"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.healthcare-fitness"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Science"
+    }
+  }
+}

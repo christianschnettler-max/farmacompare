@@ -1,0 +1,4 @@
+FarmaCompare Chile
+Aplicación informativa de comparación de precios de medicamentos.
+No reemplaza el consejo de un médico ni de un químico farmacéutico.
+En caso de emergencia, llame al SAMU 131.
