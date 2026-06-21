@@ -1,40 +1,66 @@
 import { app, BrowserWindow, shell } from "electron";
+import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT = 3001;
 let mainWindow;
 
-function encontrarArchivo(nombreRelativo) {
+function rutaBackend() {
   const candidatos = [
-    path.join(process.resourcesPath || "", nombreRelativo),
-    path.join(__dirname, "..", nombreRelativo),
-    path.join(__dirname, nombreRelativo),
-    path.join(app.getAppPath(), nombreRelativo),
+    path.join(process.resourcesPath || "", "backend", "server.js"),
+    path.join(__dirname, "..", "backend", "server.js"),
   ];
-  return candidatos.find(p => existsSync(p)) || null;
+  return candidatos.find((p) => existsSync(p));
 }
 
 async function iniciarBackend() {
-  const serverPath = encontrarArchivo(path.join("backend", "server.js"));
-  if (!serverPath) { console.error("No se encontró el backend"); return; }
-  try {
-    await import(new URL(`file:///${serverPath.replace(/\\/g, "/")}`).href);
-    console.log("Backend iniciado en:", serverPath);
-  } catch (e) {
-    console.error("Error backend:", e.message);
+  const serverPath = rutaBackend();
+  if (!serverPath) {
+    console.error("No se encontró el backend");
+    return;
   }
+  process.env.PORT = String(PORT);
+  process.env.NODE_ENV = "production";
+  process.env.FRONTEND_DIST = path.join(path.dirname(serverPath), "..", "frontend", "dist");
+
+  const url = new URL(`file:///${serverPath.replace(/\\/g, "/")}`).href;
+  try {
+    await import(url);
+    console.log("Backend iniciado:", serverPath);
+  } catch (e) {
+    console.error("Error iniciando backend:", e.message);
+  }
+}
+
+function esperarServidor(timeout = 20000) {
+  return new Promise((resolve) => {
+    const inicio = Date.now();
+    const intentar = () =>
+      http
+        .get(`http://localhost:${PORT}/api/health`, (r) => {
+          if (r.statusCode === 200) resolve(true);
+          else reintentar();
+        })
+        .on("error", reintentar);
+    const reintentar = () =>
+      Date.now() - inicio < timeout ? setTimeout(intentar, 400) : resolve(false);
+    intentar();
+  });
 }
 
 async function crearVentana() {
   if (mainWindow && !mainWindow.isDestroyed()) return;
-
   mainWindow = new BrowserWindow({
-    width: 1200, height: 800, minWidth: 380, minHeight: 600,
+    width: 1200,
+    height: 800,
+    minWidth: 380,
+    minHeight: 600,
     title: "FarmaCompare Chile",
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
     show: false,
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -42,23 +68,26 @@ async function crearVentana() {
     return { action: "deny" };
   });
 
-  const frontendPath = encontrarArchivo(path.join("frontend", "dist", "index.html"));
-  console.log("Frontend en:", frontendPath);
-
-  if (frontendPath) {
-    await mainWindow.loadFile(frontendPath);
-  } else {
-    mainWindow.loadURL("data:text/html,<h1>Error: no se encontraron los archivos de la app</h1>");
-  }
-
-  mainWindow.once("ready-to-show", () => { mainWindow.show(); mainWindow.maximize(); });
-  mainWindow.on("closed", () => { mainWindow = null; });
+  await mainWindow.loadURL(`http://localhost:${PORT}`);
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+    mainWindow.maximize();
+  });
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(async () => {
   await iniciarBackend();
+  await esperarServidor();
   await crearVentana();
 });
 
-app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("activate", () => { if (!mainWindow || mainWindow.isDestroyed()) crearVentana(); });
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+app.on("activate", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) crearVentana();
+});
