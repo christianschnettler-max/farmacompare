@@ -14,6 +14,8 @@ const RECETAS = {
   knop: { searchUrl: (t) => `https://www.knop.cl/?s=${encodeURIComponent(t)}` },
   farmaloncos: { searchUrl: (t) => `https://farmaloncos.cl/?s=${encodeURIComponent(t)}` },
   redfarma: { searchUrl: (t) => `https://www.redfarma.cl/catalogsearch/result/?q=${encodeURIComponent(t)}` },
+  liga: { searchUrl: (t) => `https://www.ligaepilepsia.cl/?post_type=product&s=${encodeURIComponent(t)}` },
+  galenica: { searchUrl: (t) => `https://farmaciagalenica.cl/?post_type=product&s=${encodeURIComponent(t)}` },
 };
 
 const NOMBRES = {
@@ -26,6 +28,8 @@ const NOMBRES = {
   knop: "Farmacias Knop",
   farmaloncos: "Farmaloncos",
   redfarma: "Redfarma",
+  liga: "Liga contra la Epilepsia",
+  galenica: "Farmacia Galénica",
 };
 
 // ─── Extractor genérico (corre DENTRO de la página real) ──────────────────────
@@ -55,18 +59,30 @@ const SCRIPT_EXTRACTOR = `(() => {
     const precio = parsePrecio(pEl.textContent);
     if (!precio) continue;
 
-    // Subir hasta una "tarjeta" que tenga link y/o título
+    // Subir hasta una "tarjeta" que tenga título e imagen
     let card = pEl;
-    let link = null, img = null, titulo = "";
+    let img = null, titulo = "";
     for (let i = 0; i < 8 && card; i++) {
       card = card.parentElement;
       if (!card) break;
-      if (!link) link = card.querySelector('a[href]');
       if (!img) img = card.querySelector('img');
       const h = card.querySelector('h1,h2,h3,h4,h5,[class*="name"],[class*="title"],[class*="nombre"],[class*="Name"],[class*="Title"]');
       if (h && (h.textContent || "").trim().length > 3) titulo = (h.textContent || "").trim();
-      if (link && titulo) break;
+      if (titulo && card.querySelector('a[href]')) break;
       if ((card.textContent || "").length > 500) break; // contenedor demasiado grande
+    }
+
+    // Elegir el enlace CORRECTO del producto (no banners ni promos):
+    // 1) un <a> ancestro del precio (tarjetas que envuelven todo en un link)
+    // 2) dentro de la tarjeta, el <a> cuya dirección parezca de producto
+    // 3) el <a> con más texto (suele ser el título del producto)
+    let link = pEl.closest("a[href]");
+    if (!link && card) {
+      const links = Array.from(card.querySelectorAll("a[href]"));
+      link =
+        links.find((a) => /\\/product|\\/products\\/|\\.html|\\/p\\/|detalle|item/i.test(a.href)) ||
+        links.sort((a, b) => (b.textContent || "").length - (a.textContent || "").length)[0] ||
+        null;
     }
 
     if (!titulo && link) titulo = (link.textContent || "").trim();
