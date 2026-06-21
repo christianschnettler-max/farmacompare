@@ -43,7 +43,6 @@ jobs:
         run: npm install --include=dev
         env:
           NODE_ENV: development
-          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
 
       - name: Construir instalador .exe
         working-directory: ${{ steps.efolder.outputs.name }}
