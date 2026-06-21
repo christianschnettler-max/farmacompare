@@ -30,17 +30,19 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Instalar dependencias de Electron
-        working-directory: electrón
-        run: npm install
-
-      - name: Construir instalador .exe
-        working-directory: electrón
-        run: npx electron-builder --win --publish never
+      - name: Instalar y construir Electron
+        run: |
+          $folder = Get-ChildItem -Directory | Where-Object { $_.Name -like "electr*" } | Select-Object -First 1
+          cd $folder.FullName
+          npm install
+          npx electron-builder --win --publish never
+        shell: pwsh
 
       - name: Subir instalador como descargable
         uses: actions/upload-artifact@v4
         with:
           name: FarmaCompare-Windows-Installer
-          path: electrón/dist-electron/*.exe
+          path: |
+            electrón/dist-electron/*.exe
+            electron/dist-electron/*.exe
           retention-days: 30
