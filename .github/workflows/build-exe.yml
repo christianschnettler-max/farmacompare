@@ -30,16 +30,28 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Instalar y construir Electron
-        run: |
-          $folder = Get-ChildItem -Directory | Where-Object { $_.Name -like "electr*" } | Select-Object -First 1
-          Set-Location $folder.FullName
-          npm install --include=dev
-          $env:NODE_ENV = "development"
-          npx electron-builder --win --publish never
+      - name: Encontrar carpeta electron
+        id: efolder
         shell: pwsh
+        run: |
+          $f = (Get-ChildItem -Directory | Where-Object { $_.Name -match "electr" } | Select-Object -First 1).Name
+          echo "name=$f" >> $env:GITHUB_OUTPUT
+          echo "Carpeta encontrada: $f"
 
-      - name: Subir instalador como descargable
+      - name: Instalar dependencias Electron
+        working-directory: ${{ steps.efolder.outputs.name }}
+        run: npm install --include=dev
+        env:
+          NODE_ENV: development
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
+      - name: Construir instalador .exe
+        working-directory: ${{ steps.efolder.outputs.name }}
+        run: npx electron-builder --win --publish never
+        env:
+          NODE_ENV: development
+
+      - name: Subir instalador
         uses: actions/upload-artifact@v4
         with:
           name: FarmaCompare-Windows-Installer
