@@ -5,6 +5,9 @@
   "description": "Comparador de precios de medicamentos en farmacias chilenas",
   "main": "main.js",
   "author": "FarmaCompare Chile",
+  "scripts": {
+    "start": "electron ."
+  },
   "devDependencies": {
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3"
@@ -12,8 +15,13 @@
   "build": {
     "appId": "cl.farmacompare.app",
     "productName": "FarmaCompare Chile",
-    "asar": false,
+    "asar": true,
     "directories": { "output": "dist-electron" },
+    "files": [
+      "main.js",
+      "scraper.js",
+      "preload.cjs"
+    ],
     "extraResources": [
       { "from": "../backend", "to": "backend", "filter": ["**/*", "!node_modules/.cache", "!tests"] },
       { "from": "../frontend/dist", "to": "frontend/dist" }
@@ -23,9 +31,11 @@
     },
     "nsis": {
       "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "FarmaCompare Chile"
+      "shortcutName": "FarmaCompare Chile",
+      "deleteAppDataOnUninstall": true
     }
   }
 }

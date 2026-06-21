@@ -1,13 +1,25 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, shell, ipcMain } from "electron";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
+import { buscarPrecios } from "./scraper.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
 let mainWindow;
 
+// Canal para que el frontend pida búsquedas de precios reales
+ipcMain.handle("buscar-precios", async (_evt, { medicamentos, farmaciaIds }) => {
+  try {
+    return await buscarPrecios(medicamentos, farmaciaIds);
+  } catch (e) {
+    console.error("Error buscando precios:", e.message);
+    return { porMedicamento: [], error: e.message };
+  }
+});
+
+// Buscar el server.js del backend (empaquetado o en desarrollo)
 function rutaBackend() {
   const candidatos = [
     path.join(process.resourcesPath || "", "backend", "server.js"),
@@ -16,6 +28,7 @@ function rutaBackend() {
   return candidatos.find((p) => existsSync(p));
 }
 
+// Iniciar el servidor Express dentro del proceso de Electron
 async function iniciarBackend() {
   const serverPath = rutaBackend();
   if (!serverPath) {
@@ -35,6 +48,7 @@ async function iniciarBackend() {
   }
 }
 
+// Esperar a que el servidor responda antes de abrir la ventana
 function esperarServidor(timeout = 20000) {
   return new Promise((resolve) => {
     const inicio = Date.now();
@@ -60,9 +74,14 @@ async function crearVentana() {
     minHeight: 600,
     title: "FarmaCompare Chile",
     show: false,
-    webPreferences: { contextIsolation: true, nodeIntegration: false },
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, "preload.cjs"),
+    },
   });
 
+  // Abrir links externos en el navegador del sistema
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };

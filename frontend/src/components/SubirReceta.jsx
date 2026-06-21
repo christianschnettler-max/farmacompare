@@ -57,7 +57,7 @@ export default function SubirReceta({ onBuscar }) {
     const validos = medicamentos.filter((m) => m.trim().length >= 2);
     if (validos.length === 0) return;
     setFase("buscando");
-    validos.forEach((m) => onBuscar(m));
+    onBuscar(validos); // busca todos juntos
   };
 
   return (
